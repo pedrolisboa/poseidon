@@ -46,23 +46,17 @@ def tpsw(x, npts=None, n=None, p=None, a=None):
     return mx
 
 def lofar(data, fs, n_pts_fft=1024, n_overlap=0,
-    decimation_rate=3, spectrum_bins_left=None, **tpsw_args):
+          spectrum_bins_left=None, **tpsw_args):
     
     if not isinstance(data, np.ndarray):
         raise NotImplementedError
 
-    if decimation_rate > 1:
-        dec_data = decimate(data, decimation_rate, 10, 'fir', zero_phase=True)
-        Fs = fs/decimation_rate
-    else:
-        dec_data = data
-        Fs=fs
-    freq, time, power = spectrogram(dec_data,
+    freq, time, power = spectrogram(data,
                                     window=('hann'),
                                     nperseg=n_pts_fft,
                                     noverlap=n_overlap,
                                     nfft=n_pts_fft,
-                                    fs=Fs,
+                                    fs=fs,
                                     detrend=False,
                                     axis=0,
                                     scaling='spectrum',
