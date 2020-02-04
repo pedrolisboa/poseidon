@@ -7,14 +7,6 @@ def resample(signal, fs, final_fs, window=('kaiser', 5.0)):
     upsampling_factor = resample_ratio.numerator
     downsampling_factor = resample_ratio.denominator
 
-    if upsampling_factor == 1:
-        return scipy.signal.decimate(
-            scipy, 
-            downsampling_factor, 
-            ftype='fir', 
-            zero_phase=True
-        )
-
     resampled_signal = scipy.signal.resample_poly(
         signal, 
         upsampling_factor, 

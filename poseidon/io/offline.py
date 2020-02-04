@@ -125,7 +125,6 @@ class SonarDict(dict):
         Apply a function over each run signal of a single class.
         Auxiliary function for applying over the dataset
         """
-        print([a for a, b in cls_data.items()])
         return {
             run_name: fn(raw_data, *args, **kwargs)
             for run_name, raw_data in cls_data.items()
