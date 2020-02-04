@@ -11,7 +11,7 @@ def resample(signal, fs, final_fs, window=('kaiser', 5.0)):
         return scipy.signal.decimate(
             scipy, 
             downsampling_factor, 
-            'fir', 
+            ftype='fir', 
             zero_phase=True
         )
 
