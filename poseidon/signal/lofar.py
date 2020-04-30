@@ -3,7 +3,8 @@ from scipy.signal import decimate, hanning, convolve, spectrogram
 import numpy as np
 
 
-def tpsw(x, npts=None, n=None, p=None, a=None):
+def tpsw(signal, npts=None, n=None, p=None, a=None):
+    x = np.copy(signal)
     if x.ndim == 1:
         x = x[:, np.newaxis]
     if npts is None:
@@ -43,6 +44,9 @@ def tpsw(x, npts=None, n=None, p=None, a=None):
     #Corrige pontos extremos do espectro
     mx[:ix,:]=mx[:ix,:]*(np.matmul(mult,np.ones((1, x.shape[1])))) # Pontos iniciais
     mx[npts-ix:npts,:]=mx[npts-ix:npts,:]*(np.matmul(np.flipud(mult),np.ones((1,x.shape[1])))) # Pontos finais
+
+    if signal.ndim == 1:
+        mx = mx[:, 0]
     return mx
 
 def lofar(data, fs, n_pts_fft=1024, n_overlap=0,
