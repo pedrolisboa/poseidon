@@ -1,3 +1,4 @@
+import warnings
 from __future__ import division
 from scipy.signal import decimate, hanning, convolve, spectrogram
 import numpy as np
@@ -51,7 +52,7 @@ def tpsw(signal, npts=None, n=None, p=None, a=None):
 
 def lofar(data, fs, n_pts_fft=1024, n_overlap=0,
           spectrum_bins_left=None, **tpsw_args):
-    
+
     if not isinstance(data, np.ndarray):
         raise NotImplementedError
 
@@ -65,15 +66,15 @@ def lofar(data, fs, n_pts_fft=1024, n_overlap=0,
                                     axis=0,
                                     scaling='spectrum',
                                     mode='magnitude')
-    # power = np.absolute(power)
-    # power = power / tpsw(power)#, **tpsw_args)
-    # power = np.log10(power)
-    # power[power < -0.2] = 0
+    power = np.absolute(power)
+    power = power / tpsw(power)#, **tpsw_args)
+    power = np.log10(power)
+    power[power < -0.2] = 0
 
-    # if spectrum_bins_left is None:
-    #     spectrum_bins_left = power.shape[0]*0.8
-    # power = power[:spectrum_bins_left, :]
-    # freq = freq[:spectrum_bins_left]
+    if spectrum_bins_left is None:
+        spectrum_bins_left = power.shape[0]*0.8
+    power = power[:spectrum_bins_left, :]
+    freq = freq[:spectrum_bins_left]
 
     return np.transpose(power), freq, time
 
