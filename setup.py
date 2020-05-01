@@ -4,11 +4,12 @@ except ImportError: # for pip <= 9.0.3
     from pip.req import parse_requirements
 
 from setuptools import setup, find_packages
+import pip
 
 setup(
     name="poseidon",
     version="0.1",
     packages=find_packages(),
     description="Toolkit for sonar signal processing",
-    install_reqs = parse_requirements('requirements.txt')
+    install_reqs = parse_requirements('requirements.txt', session=pip.download.Session())
 )
