@@ -1,5 +1,5 @@
-import warnings
 from __future__ import division
+import warnings
 from scipy.signal import decimate, hanning, convolve, spectrogram
 import numpy as np
 
