@@ -8,6 +8,7 @@
 from __future__ import print_function, division
 
 import os
+import h5py
 import warnings
 import numpy as np
 import scipy.io.wavfile as wav
@@ -70,25 +71,29 @@ def load_raw_data(input_db_path, verbose=0):
         runfiles = os.listdir(os.path.join(input_db_path, cls_folder))
         runpaths = [os.path.join(input_db_path, cls_folder, runfile)
                     for runfile in runfiles]
-        audio_data = [read_audio_file(runpath) for runpath in runpaths]
+        runfiles = [runfile.replace('.wav', '') for runfile in runfiles]
 
+        audio_data = [read_audio_file(runpath) for runpath in runpaths]
         raw_data[cls_folder] = {
-            runfile: RunRecord(signal, fs)
+            runfile: {'signal': signal, 'fs': fs}
             for runfile, (signal, fs)  in zip(runfiles, audio_data)
         }
 
     return SonarDict(raw_data)
 
-class RunRecord(dict):
-    """
-    Basic dicionary for storing the runs
-    binding the data with its respective metadata(sample rate)
-    This wrapper was made to standardize the keynames. 
-    """
+# class RunRecord(dict):
+#     """
+#     Basic dicionary for storing the runs
+#     binding the data with its respective metadata(sample rate)
+#     This wrapper was made to standardize the keynames. 
+#     """
 
-    def __init__(self, signal, fs):
-        self.__dict__['signal'] = signal
-        self.__dict__['fs'] = fs
+#     def __init__(self, signal, fs):
+#         self.__dict__['signal'] = signal
+#         self.__dict__['fs'] = fs
+
+#     def __getitem__(self , k):
+# 	return self.__dict__[k]
 
 class SonarDict(dict):
     """ 
@@ -96,6 +101,46 @@ class SonarDict(dict):
     """
     def __init__(self, raw_data):
         super(SonarDict, self).__init__(raw_data)
+
+    @staticmethod
+    def from_hdf5(filepath):
+        f = h5py.File(filepath, 'r')
+        raw_data = SonarDict.__level_from_hdf5(f)
+        f.close()
+        return SonarDict(raw_data)
+        
+    @staticmethod
+    def __level_from_hdf5(group_level):
+        level_dict = dict()
+        for key in group_level.keys():
+            if isinstance(group_level[key], h5py._hl.group.Group):
+                level_dict[key] = SonarDict.__level_from_hdf5(group_level[key])
+            elif isinstance(group_level[key], h5py._hl.dataset.Dataset):
+                # if isinstance(group_level[key].dtype, 'float64')
+                level_dict[key] = group_level[key][()]
+            else:
+                raise ValueError
+
+        return level_dict
+
+
+    def to_hdf5(self, filepath):
+        f = h5py.File(filepath, 'w')
+        SonarDict.__level_to_hdf5(self, f, '')
+        f.close()
+
+    @staticmethod
+    def __level_to_hdf5(dictionary_level, f, dpath):
+        for key in dictionary_level.keys():
+            ndpath = dpath + '/%s' % key
+            if isinstance(dictionary_level[key], dict):
+                SonarDict.__level_to_hdf5(dictionary_level[key], f, ndpath)
+            else:
+                if isinstance(dictionary_level[key], np.ndarray):
+                    dtype = dictionary_level[key].dtype
+                else:
+                    dtype = type(dictionary_level[key])
+                f.create_dataset(ndpath, data=dictionary_level[key], dtype=dtype)
 
     def apply(self, fn,*args, **kwargs):
         """ 
