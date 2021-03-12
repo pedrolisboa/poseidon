@@ -80,7 +80,7 @@ def lofar(data, fs, n_pts_fft=1024, n_overlap=0,
     return np.transpose(power), freq, time
 
 
-def demon(data, fs, n_fft=1024, max_freq=35, overlap_ratio=0.5, apply_bandpass=True, bandpass_specs=None):
+def demon(data, fs, n_fft=1024, max_freq=35, overlap_ratio=0.5, apply_bandpass=True, bandpass_specs=None, method='abs'):
     if not isinstance(data, np.ndarray):
         raise ValueError("Input must be of type numpy.ndarray. %s was passed" % type(data))
     x = data.copy()
@@ -109,8 +109,8 @@ def demon(data, fs, n_fft=1024, max_freq=35, overlap_ratio=0.5, apply_bandpass=T
                 
                 rp = bandpass_specs["rs"]
                 As = bandpass_specs["as"]
-            except:
-                raise KeyError("Missing %s specification for bandpass filter")
+            except KeyError as e:
+                raise KeyError("Missing %s specification for bandpass filter" % e)
         else:
             raise ValueError("bandpass_specs must be of type dict. %s was passed" % type(bandpass_specs))
         
@@ -118,10 +118,12 @@ def demon(data, fs, n_fft=1024, max_freq=35, overlap_ratio=0.5, apply_bandpass=T
         b, a = cheby2(N, rs=As, Wn=wc, btype='bandpass', output='ba', analog=True)
         x = lfilter(b, a, x, axis=0)
 
-    x = hilbert(x)
-    x_no = x.copy()
-
-    x = np.abs(x) # demodulation
+    if method=='hilbert':
+        x = hilbert(x)
+    elif method=='abs':
+        x = np.abs(x) # demodulation
+    else:
+        raise ValueError("Method not found")
 
     x = decimate(x, q1, ftype='fir', zero_phase=False)
     x = decimate(x, q2, ftype='fir', zero_phase=False)
