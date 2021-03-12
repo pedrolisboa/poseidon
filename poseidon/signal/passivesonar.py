@@ -1,9 +1,9 @@
 from __future__ import division
 import warnings
-from scipy.signal import decimate, hanning, convolve, spectrogram
+from scipy.signal import decimate, hanning, convolve, spectrogram, lfilter, cheby2, butter, cheb2ord, hilbert
+from librosa import stft, fft_frequencies, frames_to_time
 import numpy as np
-
-warnings.warn("This module is deprecated and will be removed in future releases. Load 'passivesonar' instead")
+import math
 
 def tpsw(signal, npts=None, n=None, p=None, a=None):
     x = np.copy(signal)
@@ -80,3 +80,69 @@ def lofar(data, fs, n_pts_fft=1024, n_overlap=0,
     return np.transpose(power), freq, time
 
 
+def demon(data, fs, n_fft=1024, max_freq=35, overlap_ratio=0.5, apply_bandpass=True, bandpass_specs=None):
+    if not isinstance(data, np.ndarray):
+        raise ValueError("Input must be of type numpy.ndarray. %s was passed" % type(data))
+    x = data.copy()
+
+    first_pass_sr = 1250 # 31250/25
+
+    q1 = round(fs/first_pass_sr) # 25 for 31250 sample rate ; decimatio ratio for 1st pass
+    q2 = round((fs/q1)/(2*max_freq)) # decimatio ratio for 2nd pass
+
+    fft_over = math.floor(n_fft-2*max_freq*overlap_ratio)
+
+    if apply_bandpass:
+        if bandpass_specs is None:
+            nyq = fs/2
+            wp = [1000/nyq, 2000/nyq]
+            ws = [700/nyq, 2300/nyq]
+            rp = 0.5
+            As = 50
+        elif isinstance(bandpass_specs, dict):
+            try:
+                fp = bandpass_specs["fp"]
+                fs = bandpass_specs["fs"]
+
+                wp = np.array(fp)/nyq
+                ws = np.array(fs)/nyq
+                
+                rp = bandpass_specs["rs"]
+                As = bandpass_specs["as"]
+            except:
+                raise KeyError("Missing %s specification for bandpass filter")
+        else:
+            raise ValueError("bandpass_specs must be of type dict. %s was passed" % type(bandpass_specs))
+        
+        N, wc = cheb2ord(wp, ws, rp, As) 
+        b, a = cheby2(N, rs=As, Wn=wc, btype='bandpass', output='ba', analog=True)
+        x = lfilter(b, a, x, axis=0)
+
+    x = hilbert(x)
+    x_no = x.copy()
+
+    x = np.abs(x) # demodulation
+
+    x = decimate(x, q1, ftype='fir', zero_phase=False)
+    x = decimate(x, q2, ftype='fir', zero_phase=False)
+
+    final_fs = (fs//q1)//q2
+
+    x /= x.max()
+    x -= np.mean(x)
+    sxx = stft(x,
+               window=('hann'),
+               win_length=n_fft,
+               hop_length=(n_fft - fft_over),
+               n_fft=n_fft)
+    freq = fft_frequencies(sr=final_fs, n_fft=n_fft)
+    time = frames_to_time(np.arange(0, sxx.shape[1]), 
+                   sr=final_fs, hop_length=(n_fft - fft_over))
+
+    sxx = np.absolute(sxx)
+    
+    sxx = sxx / tpsw(sxx)
+
+    sxx, freq = sxx[8:, :], freq[8:] # ??
+
+    return np.transpose(sxx), freq, time
