@@ -67,8 +67,10 @@ def lofar(data, fs, n_pts_fft=1024, n_overlap=0,
                                     axis=0,
                                     scaling='spectrum',
                                     mode='magnitude')
-    print(power.shape)
-    power = power.transpose()
+    #For stereo, without further changes, the genreated spectrogram has shape (freq, channel, time)
+    if power.ndim == 3: # temporary fix for stereo audio. 
+        power = power.mean(axis=1)
+        power = power.squeeze()
 
     power = np.absolute(power)
     power = power / tpsw(power)#, **tpsw_args)
