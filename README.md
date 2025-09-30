@@ -1,5 +1,5 @@
 <!-- ![poseidon_logo](assets/logo.png) -->
-<img src="assets/logo.png" alt="description of image" width="70%">
+<img src="assets/logo.png" alt="description of image" width="100%">
 
 
 
