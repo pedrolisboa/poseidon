@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "poseidon"
+version = "0.2.0"
+description = "Toolkit for sonar signal processing"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+license = "MIT"  # It's good practice to specify a license
+packages = [{ include = "poseidon" }]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+h5py = "^3.11.0"
+soundfile = "^0.12.1"
+librosa = "^0.10.1"
+torchvision = "^0.18.0"
+torchaudio = "^2.3.0"
+numpy = "^1.26.4"
+scipy = "^1.13.1"
+pandas = "^2.2.2"
+scikit-learn = "^1.5.0"
+scikit-dimension = "^0.3.0"
+alive-progress = "^3.0.0"
+wandb = "^0.17.0"
+matplotlib = "^3.9.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

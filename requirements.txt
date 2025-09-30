@@ -1,4 +1,22 @@
+h5py==3.12.1
+soundfile==0.12.1
+librosa==0.10.2
+
+# --- Core Deep Learning ---
+# torch==1.9.0
+torchvision
+torchaudio
+
+# --- Data Science & Numerics ---
+numpy==1.21.0
 scipy
-numpy
-soundfile
-h5py
+pandas # Useful for results analysis
+scikit-learn==0.24.2 # For metrics, t-SNE, and class weights
+
+# --- Embedding Evaluation ---
+scikit-dimension # For intrinsic dimension estimation
+
+# --- Utilities ---
+alive-progress # For the progress bar in the trainer
+wandb          # For experiment tracking (optional)
+matplotlib==3.4.2     # For plotting visualizations

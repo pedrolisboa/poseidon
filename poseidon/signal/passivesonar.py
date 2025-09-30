@@ -58,10 +58,9 @@ def tpsw(signal, npts=None, n=None, p=None, a=None):
 
 def lofar(data, fs, n_pts_fft=1024, n_overlap=0,
           spectrum_bins_left=None, **tpsw_args):
-
     if not isinstance(data, np.ndarray):
         raise NotImplementedError
-
+    
     freq, time, power = spectrogram(data,
                                     window=('hann'),
                                     nperseg=n_pts_fft,
@@ -87,7 +86,7 @@ def lofar(data, fs, n_pts_fft=1024, n_overlap=0,
     power = power[:spectrum_bins_left, :]
     freq = freq[:spectrum_bins_left]
 
-    return np.transpose(power), freq, time
+    return {'sxx': np.transpose(power), 'freq': freq, 'time':time}
 
 
 def demon(data, fs, n_fft=1024, max_freq=35, overlap_ratio=0.5, apply_bandpass=True, bandpass_specs=None, method='abs'):
